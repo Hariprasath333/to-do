@@ -9,8 +9,12 @@ import {
 export default function Login() {
 
   const handleGoogleLogin = async () => {
-  const provider = new GoogleAuthProvider();
-  await signInWithPopup(auth, provider);
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   const [email, setEmail] = useState("");
@@ -68,10 +72,19 @@ export default function Login() {
             {isSignup ? "Sign Up" : "Login"}
           </button>
         </form>
-
+        <div className="flex items-center my-4">
+          <div className="flex-1 h-px bg-gray-200"></div>
+          <span className="px-3 text-sm text-gray-400">OR</span>
+          <div className="flex-1 h-px bg-gray-200"></div>
+        </div>
         <button onClick={handleGoogleLogin}
-          className="w-full bg-white border text-gray-700 py-3 rounded-lg mt-3 font-medium shadow-sm hover:shadow-md flex items-center justify-center gap-2"
+          className="w-full bg-white border border-gray-300 py-3 rounded-lg mt-4 
+                    font-medium shadow-sm hover:shadow-md hover:bg-gray-50 
+                    flex items-center justify-center gap-3 transition"
         >
+          <img  src="https://www.svgrepo.com/show/475656/google-color.svg"
+            alt="google"  className="w-5 h-5"
+          />
           Continue with Google
         </button>
 
