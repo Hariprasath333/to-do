@@ -143,6 +143,24 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    const callBackend = async () => {
+      if (!user) return;
+
+      try {
+        const res = await fetchWithAuth("http://localhost:5000/todos");
+        const data = await res.text();
+
+        console.log("Backend says:", data);
+
+      } catch (err) {
+        console.error("Backend error:", err);
+      }
+    };
+    
+    callBackend();
+  }, [user]);
+
   // ✅ USER-SPECIFIC TASKS (VERY IMPORTANT)
   useEffect(() => {
 
@@ -158,9 +176,7 @@ export default function App() {
         id: d.id,
         ...d.data()
       }));
-      data.sort((a, b) => a.order - b.order);
-
-      data.sort((a, b) => a.order - b.order);
+      data.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
       setTasks(data);
 
     });
@@ -179,7 +195,7 @@ export default function App() {
       completed: false,
       uid: user.uid,
       dueDate: dueDate || null,
-      order: Date.now() // ⭐ important
+      order: tasks.length // ⭐ important
     });
 
     setDueDate("");
@@ -238,7 +254,18 @@ export default function App() {
       )
     );
   };
+  // 🔐 AUTH FETCH HELPER (JWT)
+  const fetchWithAuth = async (url, options = {}) => {
+    const token = await auth.currentUser.getIdToken();
 
+    return fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        Authorization: `Bearer ${token}`
+      }
+    });
+  };
   //  PROGRESS
   const completed = tasks.filter((t) => t.completed).length;
   const total = tasks.length;

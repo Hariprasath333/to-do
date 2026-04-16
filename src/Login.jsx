@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "./firebase";
 import {
   signInWithEmailAndPassword,
@@ -6,6 +7,12 @@ import {
 } from "firebase/auth";
 
 export default function Login() {
+
+  const handleGoogleLogin = async () => {
+  const provider = new GoogleAuthProvider();
+  await signInWithPopup(auth, provider);
+  };
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSignup, setIsSignup] = useState(false);
@@ -62,8 +69,13 @@ export default function Login() {
           </button>
         </form>
 
-        <p
-          onClick={() => setIsSignup(!isSignup)}
+        <button onClick={handleGoogleLogin}
+          className="w-full bg-white border text-gray-700 py-3 rounded-lg mt-3 font-medium shadow-sm hover:shadow-md flex items-center justify-center gap-2"
+        >
+          Continue with Google
+        </button>
+
+        <p  onClick={() => setIsSignup(!isSignup)}
           className="text-sm text-center mt-4 text-blue-500 cursor-pointer"
         >
           {isSignup
