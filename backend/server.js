@@ -5,6 +5,12 @@ const Razorpay = require("razorpay");
 const crypto = require("crypto");
 require("dotenv").config();
 
+const { Redis } = require("@upstash/redis");
+const redis = new Redis({
+  url: "https://mint-reptile-37466.upstash.io",
+  token: process.env.REDIS_TOKEN
+});
+
 const app = express();
 const PORT = 5000;
 
@@ -55,6 +61,66 @@ app.get("/todos", (req, res) => {
     { id: 1, text: "Learn React" },
     { id: 2, text: "Learn Backend" }
   ]);
+});
+
+// Redis Indexing (Gmails)
+
+// 1. Sync User Email to Redis
+app.post("/api/users/sync", async (req, res) => {
+  try {
+    const { email, uid } = req.body;
+    if (!email || !uid) return res.status(400).json({ error: "Missing email or uid" });
+
+    // Key-Value Lookup (Exact match: email -> uid)
+    await redis.set(`user:email:${email}`, uid);
+
+    // Sorted Set for Autocomplete (Store email lexicographically)
+    await redis.zadd("users:emails:autocomplete", { score: 0, member: email });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Redis sync error:", err);
+    res.status(500).json({ error: err.message || "Failed to sync to Redis" });
+  }
+});
+
+// 2. Search Emails (Autocomplete)
+app.get("/api/users/search", async (req, res) => {
+  try {
+    const query = req.query.q;
+    if (!query) return res.json([]);
+
+    // Search for emails starting with the query using ZRANGEBYLEX
+    const results = await redis.sendCommand([
+      "ZRANGEBYLEX", 
+      "users:emails:autocomplete", 
+      `[${query}`, 
+      `[${query}\xff`, 
+      "LIMIT", 
+      0, 
+      10
+    ]);
+
+    res.json(results);
+  } catch (err) {
+    console.error("Redis search error:", err);
+    res.status(500).json({ error: "Failed to search" });
+  }
+});
+
+// 3. Lookup UID by Exact Email
+app.get("/api/users/lookup", async (req, res) => {
+  try {
+    const email = req.query.email;
+    if (!email) return res.status(400).json({ error: "Missing email" });
+
+    const uid = await redis.get(`user:email:${email}`);
+    if (!uid) return res.json({ exists: false });
+
+    res.json({ exists: true, uid });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to lookup" });
+  }
 });
 
 // Razorpay

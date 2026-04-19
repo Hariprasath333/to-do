@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Trash2, Check, Pencil, GripVertical, Moon, Sun } from "lucide-react";
+import { Plus, Trash2, Check, Pencil, GripVertical, Moon, Sun, Search } from "lucide-react";
 import { db, auth } from "./firebase";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -144,6 +144,34 @@ export default function App() {
   const [isPremium, setIsPremium] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
+  // REDIS SEARCH STATES
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        setIsSearching(true);
+        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const res = await fetch(`${API_URL}/api/users/search?q=${searchQuery}`);
+        const data = await res.json();
+        setSearchResults(data);
+      } catch (err) {
+        console.error("Search error:", err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -183,6 +211,17 @@ export default function App() {
             },
             { merge: true }
           );
+
+          try {
+            const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+            await fetch(`${API_URL}/api/users/sync`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: currentUser.email, uid: currentUser.uid })
+            });
+          } catch (err) {
+            console.error("Failed to sync user to Redis", err);
+          }
         };
 
         saveUser();
@@ -219,8 +258,10 @@ export default function App() {
 
   const handlePremium = async () => {
     try {
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
       // 1. Create order from backend
-      const res = await fetch("https://your-backend.onrender.com/create-order", {
+      const res = await fetch(`${API_URL}/create-order`, {
         method: "POST"
       });
 
@@ -234,7 +275,7 @@ export default function App() {
 
       script.onload = () => {
         const options = {
-          key: "rzp_test_SevbLa90X2qDs7",
+          key: "rzp_test_SevbLa90X2qDs7", // Matches backend/.env
           amount: order.amount,
           currency: order.currency,
           name: "To-Do App",
@@ -243,7 +284,7 @@ export default function App() {
 
           handler: async function (response) {
             // 3. Verify payment
-            const verifyRes = await fetch("https://your-backend.onrender.com/verify", {
+            const verifyRes = await fetch(`${API_URL}/verify`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json"
@@ -413,11 +454,39 @@ export default function App() {
           </button>
         </div>
 
-        {/* CENTER: Title */}
-        <div className="flex-1 flex justify-center">
-          <h1 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
+        {/* CENTER: Title & Search */}
+        <div className="flex-1 flex flex-col sm:flex-row justify-center items-center gap-4">
+          <h1 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white hidden md:block">
             To-Dos
           </h1>
+          
+          <div className="relative w-full max-w-xs">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search size={16} className="text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white transition-colors"
+            />
+            {searchQuery && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden z-50">
+                {isSearching ? (
+                  <div className="px-4 py-3 text-sm text-gray-500">Searching...</div>
+                ) : searchResults.length > 0 ? (
+                  searchResults.map((email, idx) => (
+                    <div key={idx} className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer">
+                      {email}
+                    </div>
+                  ))
+                ) : (
+                  <div className="px-4 py-3 text-sm text-gray-500">No users found</div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* RIGHT: Logout */}
