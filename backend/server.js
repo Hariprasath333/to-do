@@ -12,7 +12,19 @@ app.use(cors());
 app.use(express.json());
 
 // Firebase
-const serviceAccount = require("./serviceAccountKey.json");
+let serviceAccount;
+
+if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+  serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+} else {
+  try {
+    serviceAccount = require("./serviceAccountKey.json");
+  } catch (error) {
+    console.error("Error: Could not find Firebase credentials.");
+    console.error("Please ensure serviceAccountKey.json exists locally, or FIREBASE_SERVICE_ACCOUNT is set in your environment.");
+    process.exit(1);
+  }
+}
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),

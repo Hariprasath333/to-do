@@ -94,8 +94,8 @@ function SortableTask({ task, handleToggleTask, handleDeleteTask, handleEditTask
         <div className="flex flex-col gap-0 md:gap-1">
           <span
             className={`text-sm md:text-base ${task.completed
-                ? "line-through text-gray-400 dark:text-slate-500"
-                : "text-gray-900 dark:text-slate-100 font-medium"
+              ? "line-through text-gray-400 dark:text-slate-500"
+              : "text-gray-900 dark:text-slate-100 font-medium"
               }`}
           >
             {task.text}
@@ -185,31 +185,13 @@ export default function App() {
           );
         };
 
-        saveUser(); 
+        saveUser();
       }
     });
 
     return () => unsubscribe();
 
   }, []);
-
-  useEffect(() => {
-    const callBackend = async () => {
-      if (!user) return;
-
-      try {
-        const res = await fetchWithAuth("http://localhost:5000/todos");
-        const data = await res.text();
-
-        console.log("Backend says:", data);
-
-      } catch (err) {
-        console.error("Backend error:", err);
-      }
-    };
-
-    callBackend();
-  }, [user]);
 
   // ✅ USER-SPECIFIC TASKS 
   useEffect(() => {
@@ -238,7 +220,7 @@ export default function App() {
   const handlePremium = async () => {
     try {
       // 1. Create order from backend
-      const res = await fetch("http://localhost:5000/create-order", {
+      const res = await fetch("https://your-backend.onrender.com/create-order", {
         method: "POST"
       });
 
@@ -252,7 +234,7 @@ export default function App() {
 
       script.onload = () => {
         const options = {
-          key: "rzp_test_SevbLa90X2qDs7", 
+          key: "rzp_test_SevbLa90X2qDs7",
           amount: order.amount,
           currency: order.currency,
           name: "To-Do App",
@@ -261,7 +243,7 @@ export default function App() {
 
           handler: async function (response) {
             // 3. Verify payment
-            const verifyRes = await fetch("http://localhost:5000/verify", {
+            const verifyRes = await fetch("https://your-backend.onrender.com/verify", {
               method: "POST",
               headers: {
                 "Content-Type": "application/json"
@@ -305,7 +287,7 @@ export default function App() {
     if (!newTaskText.trim()) return;
 
     let insertIndex = tasks.length;
-    
+
     if (dueDate) {
       const index = tasks.findIndex(t => {
         if (!t.dueDate) return true;
