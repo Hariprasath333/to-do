@@ -40,7 +40,7 @@ export default function Login() {
     setEmailError("");
     
     try {
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:30000";
       const res = await fetch(`${API_URL}/api/users/lookup?email=${encodeURIComponent(email)}`);
       
       if (res.ok) {
@@ -80,17 +80,12 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-slate-50">
       
-      {/* Centered Stylish App Header */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
-        className="absolute top-6 sm:top-10 left-0 w-full z-30 flex justify-center pointer-events-none"
-      >
-        <h1 className="text-3xl sm:text-4xl font-serif text-slate-800 tracking-[0.25em] uppercase font-medium">
+      {/* App Header */}
+      <header className="absolute top-0 left-0 w-full h-16 sm:h-20 bg-white/80 backdrop-blur-md border-b border-slate-200 z-50 flex items-center justify-center">
+        <h1 className="text-2xl sm:text-3xl font-serif text-slate-800 tracking-[0.25em] uppercase font-bold">
           SEYAL
         </h1>
-      </motion.div>
+      </header>
 
       {/* Animated Soft Pastel Background Gradients */}
       <div className="absolute inset-0 z-0 overflow-hidden">

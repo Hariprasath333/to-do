@@ -158,7 +158,7 @@ export default function App() {
     const timer = setTimeout(async () => {
       try {
         setIsSearching(true);
-        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+        const API_URL = import.meta.env.VITE_API_URL || "http://localhost:30000";
         const res = await fetch(`${API_URL}/api/users/search?q=${searchQuery}`);
         const data = await res.json();
         setSearchResults(data);
@@ -213,7 +213,7 @@ export default function App() {
           );
 
           try {
-            const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+            const API_URL = import.meta.env.VITE_API_URL || "http://localhost:30000";
             await fetch(`${API_URL}/api/users/sync`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -232,7 +232,7 @@ export default function App() {
 
   }, []);
 
-  // ✅ USER-SPECIFIC TASKS 
+  //  USER-SPECIFIC TASKS 
   useEffect(() => {
 
     if (!user) return;
@@ -258,7 +258,7 @@ export default function App() {
 
   const handlePremium = async () => {
     try {
-      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:30000";
 
       // 1. Create order from backend
       const res = await fetch(`${API_URL}/create-order`, {
@@ -454,39 +454,11 @@ export default function App() {
           </button>
         </div>
 
-        {/* CENTER: Title & Search */}
-        <div className="flex-1 flex flex-col sm:flex-row justify-center items-center gap-4">
-          <h1 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white hidden md:block">
-            To-Dos
+        {/* CENTER: Title */}
+        <div className="flex-1 flex justify-center items-center">
+          <h1 className="text-2xl sm:text-3xl font-serif text-slate-800 dark:text-white tracking-[0.25em] uppercase font-bold">
+            SEYAL
           </h1>
-          
-          <div className="relative w-full max-w-xs">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search size={16} className="text-gray-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search users..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white transition-colors"
-            />
-            {searchQuery && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden z-50">
-                {isSearching ? (
-                  <div className="px-4 py-3 text-sm text-gray-500">Searching...</div>
-                ) : searchResults.length > 0 ? (
-                  searchResults.map((email, idx) => (
-                    <div key={idx} className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700 cursor-pointer">
-                      {email}
-                    </div>
-                  ))
-                ) : (
-                  <div className="px-4 py-3 text-sm text-gray-500">No users found</div>
-                )}
-              </div>
-            )}
-          </div>
         </div>
 
         {/* RIGHT: Logout */}
